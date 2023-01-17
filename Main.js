@@ -18,7 +18,7 @@ $(function () {
     }
     workinDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     plannedPTODays = [];
-    console.clear();
+    
 
     
     initializeCalendar();
@@ -28,8 +28,7 @@ $(function () {
 
 function clickMe(ele) {    
     if (workinDays.includes(ele.getAttribute("data-day"))) {
-        $(ele).find('input[type="checkbox"]').prop("checked", !$(ele).find('input[type="checkbox"]').prop("checked"));
-        console.log($(ele).find('input[type="checkbox"]').val() + $(ele).find('input[type="checkbox"]').is(':checked'));
+        $(ele).find('input[type="checkbox"]').prop("checked", !$(ele).find('input[type="checkbox"]').prop("checked"));        
 
         if ($(ele).find('input[type="checkbox"]').is(':checked')) {
             ele.setAttribute('style', 'background-color:#dbef96');
@@ -37,8 +36,7 @@ function clickMe(ele) {
                 plannedPTODays.push($(ele).find('input[type="checkbox"]').val());
             }
 
-            initialize();
-            console.log(plannedPTODays);
+            initialize();            
         }
         else {
             ele.removeAttribute('style');
@@ -48,29 +46,36 @@ function clickMe(ele) {
             }
 
             initialize();
-            console.log(plannedPTODays);
         }
     }    
 }
 
-function initialize() {    
+function initialize() {
+    today = toUTC((new Date()));
+    let todayEleId = today.yyyymmdd(today.getFullYear(), today.getMonth() + 1, today.getDate());    
+    document.getElementById(todayEleId).style.border = "1px solid #85C1E9";
+    
+
+
+
     currentPTO = 0;
     maxPTO = Number(document.querySelector("#maxPTO").value);
     existingPTO = Number(document.querySelector("#existingPTO").value);
     hoursAccruedPerPD = Number(document.querySelector("#hoursAccruedPerPD").value);
     paydays = [];
+    activePaydays = [];
     paydaysNeedingDeductions = {};
-    firstPayday = "";
-
-    console.log(plannedPTODays);
+    firstPayday = "";    
 
     if (validateInteger(maxPTO) && validateInteger(existingPTO) && validateInteger(hoursAccruedPerPD)) {
         calculatePaydays();
         addPDLabels(paydays);
 
+        activePaydays = paydays.filter(x => { if (toUTC(new Date(x)) >= today) { return x; } });       
+
         currentPTO = existingPTO;
-        paydaysNeedingDeductions = getPayDaysNeedingDeductions(paydays, plannedPTODays);
-        calculatePTO(paydays, hoursAccruedPerPD, paydaysNeedingDeductions);
+        paydaysNeedingDeductions = getPayDaysNeedingDeductions(activePaydays, plannedPTODays);
+        calculatePTO(activePaydays, hoursAccruedPerPD, paydaysNeedingDeductions);
     }    
 }
 
@@ -158,7 +163,7 @@ function renderMonth(month, year) {
     var i, l = last_day.getDate() + 1, d;
     for (i = 1; i < l; i++) {
         d = toUTC(new Date(year + "-" + month + "-" + i));
-        $(".year[data-year='" + year + "'] ." + month).append("<li id=\"" + d.yyyymmdd(year, month, i) + "\" data-day=\"" + weekday[d.getDay()] + "\"  data-date=\"" + i + addDateSubscript(i) + "\" onclick=\"clickMe(this)\"><input type=\"checkbox\" value=\"" + d.yyyymmdd(year, month, i) + "\" style=\" display:none\"></li>");
+        $(".year[data-year='" + year + "'] ." + month).append("<li id=\"" + d.yyyymmdd(year, month, i) + "\" data-day=\"" + weekday[d.getDay()] + "\"  data-date=\"" + i + addDateSubscript(i) + "\" onclick=\"clickMe(this)\"><input type=\"checkbox\" value=\"" + d.yyyymmdd(year, month, i) + "\" style=\"display:none\"></li>");
         
     }
 }
@@ -188,7 +193,7 @@ function addPDLabels(paydays) {
         var ele = document.getElementById(id);
         var checked = $(ele).find('input[type="checkbox"]').is(':checked');
         if (ele) {            
-            ele.innerHTML = "<input type=\"checkbox\" value=\"" + id + "\" style=\" display:none\"><div id=\"" + id + "-div\" style=\" margin-left:17%; width:35%; \"><span style=\"position: absolute; margin-top:5px; font-family:sans-serif; border-radius: 25px; text-align:center; display:inline-block; width: 20px; margin-left:30px; background-color:#73AD21; font-size:11px; color:white;\">PD</span></div>";
+            ele.innerHTML = "<input type=\"checkbox\" value=\"" + id + "\" style=\"display:none\"><div id=\"" + id + "-div\" style=\" margin-left:17%; width:35%; \"><span style=\"position: absolute; margin-top:5px; font-family:sans-serif; border-radius: 25px; text-align:center; display:inline-block; width: 20px; margin-left:30px; background-color:#73AD21; font-size:11px; color:white;\">PD</span></div>";
             if (checked) {
                 $(ele).find('input[type="checkbox"]').prop("checked", checked);
             }
@@ -204,15 +209,26 @@ function removePDLabels() {
     });
 }
 
-function getClosestSucceedingPayDay(paydays, plannedPTODay) {
-    return paydays.sort(function (a, b) { toUTC(new Date(a)) - toUTC(new Date(b)); })
-        .find(x => toUTC(new Date(x)) >= toUTC(new Date(plannedPTODay)));
+function getClosestSucceedingPayDay(activePaydays, plannedPTODay) {
+    var closestPDIndex = activePaydays.sort(function (a, b) { toUTC(new Date(a)) - toUTC(new Date(b)); })
+        .findIndex(x => toUTC(new Date(x)) >= toUTC(new Date(plannedPTODay)));
+
+    var threeDaysPriorToClosestPD = toUTC(new Date(activePaydays[closestPDIndex]));
+    var closestPD = toUTC(new Date(activePaydays[closestPDIndex]));
+    threeDaysPriorToClosestPD.setDate(closestPD.getDate() - 3);    
+
+    if (toUTC(new Date(plannedPTODay)) >= threeDaysPriorToClosestPD && toUTC(new Date(plannedPTODay)) <= toUTC(new Date(activePaydays[closestPDIndex]))) {
+        return activePaydays[closestPDIndex + 1];
+           
+    } else {
+        return activePaydays[closestPDIndex];
+    }
 }
 
-function getPayDaysNeedingDeductions(paydays, plannedPTODays) {
+function getPayDaysNeedingDeductions(activePaydays, plannedPTODays) {
     var paydaysNeedingDeductions = new Object;
     plannedPTODays.forEach((plannedPTODay) => {
-        var closestPayDay = getClosestSucceedingPayDay(paydays, plannedPTODay);
+        var closestPayDay = getClosestSucceedingPayDay(activePaydays, plannedPTODay);
         if (closestPayDay in paydaysNeedingDeductions) {
             paydaysNeedingDeductions[closestPayDay] += 8;
         }
@@ -223,14 +239,13 @@ function getPayDaysNeedingDeductions(paydays, plannedPTODays) {
     return paydaysNeedingDeductions;
 }
 
-function calculatePTO(paydays, hoursAccruedPerPayCheck, paydaysNeedingDeductions) {
+function calculatePTO(activePaydays, hoursAccruedPerPayCheck, paydaysNeedingDeductions) {
     let newPTO = 0;
-    paydays.forEach((payday) => {
+    activePaydays.forEach((payday) => {
         if (payday in paydaysNeedingDeductions) {
             let calculatedValueWithDeductions = currentPTO - paydaysNeedingDeductions[payday] + hoursAccruedPerPayCheck;
             newPTO = calculatedValueWithDeductions > maxPTO ? maxPTO : calculatedValueWithDeductions;
-            //console.log(newPTO + " hours for " + payday);
-
+            
             var ele = document.getElementById(payday+"-div");
             if (ele) {
                 ele.innerHTML += "<span style=\"position:absolute; border-radius: 25px; margin-top:5px; text-align:center; display:inline-block; width: 28px; margin-right:30px; background-color:#5DADE2; font-size:11px; font-family:sans-serif; color:white; \">" + newPTO + "</span>";
@@ -240,8 +255,7 @@ function calculatePTO(paydays, hoursAccruedPerPayCheck, paydaysNeedingDeductions
         else {
             let calculatedValueWithoutDeductions = currentPTO + hoursAccruedPerPayCheck;
             newPTO = calculatedValueWithoutDeductions > maxPTO ? maxPTO : calculatedValueWithoutDeductions;
-            //console.log(newPTO + " hours for " + payday);
-
+            
             var ele = document.getElementById(payday + "-div");
             if (ele) {
                 ele.innerHTML += "<span style=\"position:absolute; border-radius: 25px; margin-top:5px; text-align:center; display:inline-block; width: 28px; margin-right:30px; background-color:#5DADE2; font-size:11px; font-family:sans-serif; color:white; \">" + newPTO + "</span>";
