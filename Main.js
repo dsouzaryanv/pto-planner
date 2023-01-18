@@ -29,7 +29,7 @@ $(function () {
 function clickMe(ele) {    
     if (workinDays.includes(ele.getAttribute("data-day"))) {
         $(ele).find('input[type="checkbox"]').prop("checked", !$(ele).find('input[type="checkbox"]').prop("checked"));        
-
+                
         if ($(ele).find('input[type="checkbox"]').is(':checked')) {
             ele.setAttribute('style', 'background-color:#dbef96');
             if (!plannedPTODays.includes($(ele).find('input[type="checkbox"]').val())) {
@@ -51,12 +51,9 @@ function clickMe(ele) {
 }
 
 function initialize() {
-    today = toUTC((new Date()));
+    today = new Date();
     let todayEleId = today.yyyymmdd(today.getFullYear(), today.getMonth() + 1, today.getDate());    
     document.getElementById(todayEleId).style.border = "1px solid #85C1E9";
-    
-
-
 
     currentPTO = 0;
     maxPTO = Number(document.querySelector("#maxPTO").value);
