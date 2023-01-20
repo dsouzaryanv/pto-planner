@@ -123,5 +123,24 @@
 }
 
 .year ul li:hover[data-day="Monday"], .year ul li:hover[data-day="Tuesday"], .year ul li:hover[data-day="Wednesday"], .year ul li:hover[data-day="Thursday"], .year ul li:hover[data-day="Friday"] {
-    background: #edf7ca; /*#dbef96;*/
+    background: #edf7ca; 
 }
+
+.contextmenu-customstyle {
+    color: aqua !important;
+    font-size: 10px !important;
+    font-family: sans-serif !important;
+    width: 79px !important;
+    min-width: 78px !important;
+}
+
+.contextmenu-customstyle li {
+    color: transparent;
+    text-shadow: 0 0 0 rgba(0,0,0,0.55);
+}
+
+/*.contextmenu-customstyle li:hover {
+    background: #dbef96;
+    color: transparent;
+    text-shadow: 0 0 0 rgba(0,0,0,0.55);
+}*/

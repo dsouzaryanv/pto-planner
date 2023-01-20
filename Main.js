@@ -34,21 +34,35 @@ function clickMe(ele) {
             ele.setAttribute('style', 'background-color:#dbef96');
             if (!plannedPTODays.includes($(ele).find('input[type="checkbox"]').val())) {
                 plannedPTODays.push($(ele).find('input[type="checkbox"]').val());
-            }
-
-            initialize();            
+            }                              
         }
         else {
             ele.removeAttribute('style');
             var index = plannedPTODays.indexOf($(ele).find('input[type="checkbox"]').val());
             if (index !== -1) {
                 plannedPTODays.splice(index, 1);
-            }
-
-            initialize();
+            }            
         }
+        console.log(plannedPTODays);
+        initialize();
     }    
 }
+
+$(function () {
+    $('.year').contextMenu({
+        className: 'contextmenu-customstyle',
+        selector: 'li',
+        callback: function (key, options) {
+            var m = "clicked: " + key + " on " + $(this).attr("id");
+            window.console && console.log(m) || alert(m);
+        },
+        items: {
+            "hd": { name: "Half Day", icon: "edit" }
+            /*"sep1": "---------",*/
+            /*"quit": { name: "Quit", icon: function ($element, key, item) { return 'context-menu-icon context-menu-icon-quit'; } }*/
+        }
+    });
+});
 
 function initialize() {
     today = new Date();
@@ -72,6 +86,7 @@ function initialize() {
 
         currentPTO = existingPTO;
         paydaysNeedingDeductions = getPayDaysNeedingDeductions(activePaydays, plannedPTODays);
+        console.log(paydaysNeedingDeductions);
         calculatePTO(activePaydays, hoursAccruedPerPD, paydaysNeedingDeductions);
     }    
 }
