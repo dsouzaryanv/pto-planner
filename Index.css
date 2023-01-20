@@ -139,8 +139,8 @@
     text-shadow: 0 0 0 rgba(0,0,0,0.55);
 }
 
-/*.contextmenu-customstyle li:hover {
-    background: #dbef96;
-    color: transparent;
+.contextmenu-customstyle li:hover {
+    background: #5DADE2;
+    color: white;
     text-shadow: 0 0 0 rgba(0,0,0,0.55);
-}*/
+}
