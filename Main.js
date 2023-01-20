@@ -16,7 +16,7 @@ $(function () {
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     }
-    workinDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    workingDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     plannedPTODays = {};
     
     initializeCalendar();
@@ -26,7 +26,10 @@ $(function () {
 //---------------------------------CLICK AND ONCHANGE FUNCTIONS-------------------------------------------
 
 function clickMe(ele) {
-    if (workinDays.includes(ele.getAttribute("data-day"))) {
+    let today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (workingDays.includes(ele.getAttribute("data-day")) && (toUTC(new Date($(ele).attr("id"))) >= today)) {
         $(ele).find('input[type="checkbox"]').prop("checked", !$(ele).find('input[type="checkbox"]').prop("checked"));
 
         if ($(ele).find('input[type="checkbox"]').is(':checked')) {
@@ -41,6 +44,9 @@ function clickMe(ele) {
         }
         console.log(plannedPTODays);
         initialize();
+    }
+    else {
+        toastr["error"]("Planned PTO is either weekend or in the past", "Planned PTO").css({ "font-family": "sans-serif", "font-size": "12px" });
     }
 }
 
@@ -229,7 +235,14 @@ function renderMonth(month, year) {
     var i, l = last_day.getDate() + 1, d;
     for (i = 1; i < l; i++) {
         d = toUTC(new Date(year + "-" + month + "-" + i));
-        $(".year[data-year='" + year + "'] ." + month).append("<li id=\"" + d.yyyymmdd(year, month, i) + "\" data-day=\"" + weekday[d.getDay()] + "\"  data-date=\"" + i + addDateSubscript(i) + "\" onclick=\"clickMe(this)\"><input type=\"checkbox\" value=\"" + d.yyyymmdd(year, month, i) + "\" style=\"display:none\"></li>");
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (weekday[d.getDay()] == "Sunday" || weekday[d.getDay()] == "Saturday" || d < today) {            
+            $(".year[data-year='" + year + "'] ." + month).append("<li class=\"context-menu-disabled\" id=\"" + d.yyyymmdd(year, month, i) + "\" data-day=\"" + weekday[d.getDay()] + "\"  data-date=\"" + i + addDateSubscript(i) + "\" onclick=\"clickMe(this)\"><input type=\"checkbox\" value=\"" + d.yyyymmdd(year, month, i) + "\" style=\"display:none\"></li>");
+        } else {
+            $(".year[data-year='" + year + "'] ." + month).append("<li id=\"" + d.yyyymmdd(year, month, i) + "\" data-day=\"" + weekday[d.getDay()] + "\"  data-date=\"" + i + addDateSubscript(i) + "\" onclick=\"clickMe(this)\"><input type=\"checkbox\" value=\"" + d.yyyymmdd(year, month, i) + "\" style=\"display:none\"></li>");
+        }       
     }
 }
 
