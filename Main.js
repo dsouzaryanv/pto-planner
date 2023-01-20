@@ -17,7 +17,7 @@ $(function () {
         "hideMethod": "fadeOut"
     }
     workinDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-    plannedPTODays = [];
+    plannedPTODays = {};
     
 
     
@@ -32,16 +32,13 @@ function clickMe(ele) {
                 
         if ($(ele).find('input[type="checkbox"]').is(':checked')) {
             ele.setAttribute('style', 'background-color:#dbef96');
-            if (!plannedPTODays.includes($(ele).find('input[type="checkbox"]').val())) {
-                plannedPTODays.push($(ele).find('input[type="checkbox"]').val());
-            }                              
+            plannedPTODays[$(ele).find('input[type="checkbox"]').val()] = 8;            
         }
         else {
             ele.removeAttribute('style');
-            var index = plannedPTODays.indexOf($(ele).find('input[type="checkbox"]').val());
-            if (index !== -1) {
-                plannedPTODays.splice(index, 1);
-            }            
+            if ($(ele).find('input[type="checkbox"]').val() in plannedPTODays) {
+                delete plannedPTODays[$(ele).find('input[type="checkbox"]').val()];
+            }
         }
         console.log(plannedPTODays);
         initialize();
@@ -53,13 +50,15 @@ $(function () {
         className: 'contextmenu-customstyle',
         selector: 'li',
         callback: function (key, options) {
-            var m = "clicked: " + key + " on " + $(this).attr("id");
-            window.console && console.log(m) || alert(m);
+            var liId = $(this).attr("id");
+            var m = "clicked: " + key + " on " + liId;            
+            document.getElementById(liId).setAttribute('style', 'background-image: linear-gradient(to right, white , #dbef96)');
+            plannedPTODays[liId] = 4;            
+            console.log(plannedPTODays);
+            initialize();
         },
         items: {
-            "hd": { name: "Half Day", icon: "edit" }
-            /*"sep1": "---------",*/
-            /*"quit": { name: "Quit", icon: function ($element, key, item) { return 'context-menu-icon context-menu-icon-quit'; } }*/
+            "hd": { name: "Half Day", icon: "edit" }            
         }
     });
 });
@@ -239,15 +238,15 @@ function getClosestSucceedingPayDay(activePaydays, plannedPTODay) {
 
 function getPayDaysNeedingDeductions(activePaydays, plannedPTODays) {
     var paydaysNeedingDeductions = new Object;
-    plannedPTODays.forEach((plannedPTODay) => {
+    for (let plannedPTODay in plannedPTODays) {
         var closestPayDay = getClosestSucceedingPayDay(activePaydays, plannedPTODay);
         if (closestPayDay in paydaysNeedingDeductions) {
-            paydaysNeedingDeductions[closestPayDay] += 8;
+            paydaysNeedingDeductions[closestPayDay] += plannedPTODays[plannedPTODay];
         }
         else {
-            paydaysNeedingDeductions[closestPayDay] = 8;
+            paydaysNeedingDeductions[closestPayDay] = plannedPTODays[plannedPTODay];
         }
-    });
+    }
     return paydaysNeedingDeductions;
 }
 
