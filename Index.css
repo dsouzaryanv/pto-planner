@@ -18,6 +18,7 @@
     border: 1px solid #ddd;
     font-family: sans-serif;
     font-size: 12px;    
+    width: 100px;
 }
 
 /*@media (max-width: 800px)  {
