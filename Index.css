@@ -1,3 +1,13 @@
+#logo {
+    width: 150px;    
+    margin: 0px 30px 0px 0px;
+}
+
+img {
+    width: 150px;    
+    object-fit: contain;    
+}
+
 .form-inline {
     display: flex;
     flex-flow: row wrap;
