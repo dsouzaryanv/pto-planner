@@ -155,22 +155,20 @@ function calculatePTO(activePaydays, hoursAccruedPerPayCheck, paydaysNeedingDedu
     activePaydays.forEach((payday) => {
         if (payday in paydaysNeedingDeductions) {
             let calculatedValueWithDeductions = currentPTO - paydaysNeedingDeductions[payday] + hoursAccruedPerPayCheck;
-            newPTO = calculatedValueWithDeductions > maxPTO ? maxPTO : calculatedValueWithDeductions;
-
-            var ele = document.getElementById(payday + "-div");
-            if (ele) {
-                ele.innerHTML += "<span style=\"position:absolute; border-radius: 25px; margin-top:5px; text-align:center; display:inline-block; width: 28px; margin-right:30px; background-color:#5DADE2; font-size:11px; font-family:sans-serif; color:white; \">" + newPTO + "</span>";
-
-            }
+            newPTO = calculatedValueWithDeductions > maxPTO ? maxPTO : calculatedValueWithDeductions;            
         }
         else {
             let calculatedValueWithoutDeductions = currentPTO + hoursAccruedPerPayCheck;
             newPTO = calculatedValueWithoutDeductions > maxPTO ? maxPTO : calculatedValueWithoutDeductions;
 
-            var ele = document.getElementById(payday + "-div");
-            if (ele) {
+        }
+        var ele = document.getElementById(payday + "-div");
+        if (ele) {
+            if (newPTO == maxPTO) {
+                ele.innerHTML += "<span style=\"position:absolute; border-radius: 25px; margin-top:5px; text-align:center; display:inline-block; width: 28px; margin-right:30px; background-color:#2E86C1; font-size:11px; font-family:sans-serif; color:white; \">" + newPTO + "</span>";
+            }
+            else {
                 ele.innerHTML += "<span style=\"position:absolute; border-radius: 25px; margin-top:5px; text-align:center; display:inline-block; width: 28px; margin-right:30px; background-color:#5DADE2; font-size:11px; font-family:sans-serif; color:white; \">" + newPTO + "</span>";
-
             }
         }
         currentPTO = newPTO;
