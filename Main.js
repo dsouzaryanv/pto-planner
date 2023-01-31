@@ -224,11 +224,7 @@ function fillCalendar(year) {
 
 function renderMonth(month, year) {
     const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    var first_day = new Date(year + "-" + month),
-        last_day = new Date();
-    last_day.setYear(year);
-    last_day.setMonth(month);
-    last_day.setDate(0);
+    var last_day = new Date(year, month, 0);    
 
     var i, l = last_day.getDate() + 1, d;
     for (i = 1; i < l; i++) {
