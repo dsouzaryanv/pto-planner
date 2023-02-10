@@ -18,6 +18,7 @@ $(function () {
     }
     workingDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     plannedPTODays = {};
+    publicHolidays = [];
     
     initializeCalendar();
     initialize();    
@@ -26,10 +27,11 @@ $(function () {
 //---------------------------------CLICK AND ONCHANGE FUNCTIONS-------------------------------------------
 
 function clickMe(ele) {
+    
     let today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    if (workingDays.includes(ele.getAttribute("data-day")) && (toUTC(new Date($(ele).attr("id"))) >= today)) {
+
+    if (workingDays.includes(ele.getAttribute("data-day")) && (toUTC(new Date($(ele).attr("id"))) >= today) && !publicHolidays.some(e => e.date == $(ele).attr("id"))) {
         $(ele).find('input[type="checkbox"]').prop("checked", !$(ele).find('input[type="checkbox"]').prop("checked"));
 
         if ($(ele).find('input[type="checkbox"]').is(':checked')) {
@@ -46,7 +48,7 @@ function clickMe(ele) {
         initialize();
     }
     else {
-        toastr["error"]("Planned PTO is either weekend or in the past", "Planned PTO").css({ "font-family": "sans-serif", "font-size": "12px" });
+        toastr["error"]("Planned PTO is either weekend, public holiday or in the past", "Planned PTO").css({ "font-family": "sans-serif", "font-size": "12px" });
     }
 }
 
@@ -91,12 +93,20 @@ function updatePaydays() {
 //---------------------------------CORE FUNCTIONS---------------------------------------------------------
 
 function initialize() {
+    
     today = new Date();
     let todayEleId = today.yyyymmdd(today.getFullYear(), today.getMonth() + 1, today.getDate());
     let dataYear = document.querySelector("#currentYear").value;
+    publicHolidays = getPublicHolidays(dataYear);
+
     if (today.getFullYear() == dataYear) {
         document.getElementById(todayEleId).style.border = "1px solid #85C1E9";
-    }  
+
+        publicHolidays.forEach((holiday) => {            
+            document.getElementById(holiday.date).style.border = "1px solid #FFA23A";
+            document.getElementById(holiday.date).setAttribute("title", holiday.name);
+        });      
+    }
 
     currentPTO = 0;
     maxPTO = Number(document.querySelector("#maxPTO").value);
@@ -301,5 +311,47 @@ Date.prototype.yyyymmdd = function (year, month, day) {
         (month > 9 ? '' : '0') + month + "-" +
         (day > 9 ? '' : '0') + day;
 };
+
+function getPublicHolidays(year) {
+    let holidays = [];
+
+    holidays.push({ name: "New Year's Day", date: year + "-01-01" });
+    holidays.push({ name: "Independence Day", date: year + "-07-04" });
+    holidays.push({ name: "Christmas Day", date: year + "-12-25" });
+    holidays.push({ name: "Martin Luther King Jr. Day", date: getSpecificPublicHoliday(year, 0, 1, 3) });
+    holidays.push({ name: "Memorial Day", date: getSpecificPublicHoliday(year, 4, 1, 'last') });
+    holidays.push({ name: "Labor Day", date: getSpecificPublicHoliday(year, 8, 1, 1) });
+    holidays.push({ name: "Thanksgiving Day", date: getSpecificPublicHoliday(year, 10, 4, 4) });
+
+    return holidays;
+}
+
+function getSpecificPublicHoliday(year, month, day, ordinal) {
+
+    //Set target date to first day of requested month and year
+    let targetDate = new Date(year, month, 1);
+    targetDate.setHours(0, 0, 0, 0);
+    let days = [];
+
+    //Get first requested day in the month (if requested day was monday, get first monday in the month)
+    while (targetDate.getDay() !== day) {
+        targetDate.setDate(targetDate.getDate() + 1);
+    }
+
+    //Get all the other occurences of the requested day in the month (if requested day was monday, get all the other occurences of monday in the month)
+    while (targetDate.getMonth() === month) {
+        days.push(targetDate.yyyymmdd(targetDate.getFullYear(), targetDate.getMonth() + 1, targetDate.getDate()));        
+        targetDate.setDate(targetDate.getDate() + 7);
+    }
+
+    if (ordinal === 'last') {
+        return days[days.length - 1];
+    }
+    else {
+        //Subtract 1 from requested ordinal to account for 0-based counting in array
+        return days[ordinal-1];
+    }
+    
+}
 
 //--------------------------------------------------------------------------------------------------------
